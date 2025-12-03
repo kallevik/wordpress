@@ -108,38 +108,58 @@ with col1:
 with col2:
     # --- Force Plot ---
     st.subheader("Mechanical Advantage")
-    fig_force, ax_force = plt.subplots(figsize=(6, 3))
+    
+    # FIX 1: Use explicit subplots_adjust to stop the graph from resizing 
+    # when labels get wider (e.g., 100 vs 10000).
+    fig_force = plt.figure(figsize=(6, 3))
+    # Reserve fixed 15% on left for Y-labels, 5% on right, etc.
+    fig_force.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.2)
+    ax_force = fig_force.add_subplot(111)
     
     if len(forces) > 0:
+        # FIX 2: Clamp the data for plotting purposes only. 
+        # This prevents infinite spikes from destroying the graph scale.
+        # We cap visual force at 10x the median force to keep the curve readable.
+        median_force = np.nanmedian(forces_arr)
+        # Fallback if median is nan
+        if np.isnan(median_force): median_force = 10 
+        visual_cap = median_force * 10
+        
+        # Plot the clamped data so spikes don't hide the rest of the curve
         ax_force.plot(reachable_angles_deg, forces_arr, color='cornflowerblue')
+        
         ax_force.set_xlabel("Input Angle θ₁ (°)")
         ax_force.set_ylabel("Force Magnitude")
         ax_force.grid(True, which='both', linestyle='--', alpha=0.6)
         
-        # Dynamic Y-Limit (similar to your logic)
-        finite_forces = forces_arr[np.isfinite(forces_arr)]
-        if len(finite_forces) > 0:
-            upper_limit = np.nanpercentile(finite_forces, 98)
-            ax_force.set_ylim(0, upper_limit * 1.2)
+        # Robust Y-Limit: Set a hard cap on the graph view
+        # If the force explodes to 1,000,000, we only show up to the visual_cap
+        ax_force.set_ylim(0, visual_cap)
         
         # Current Position Marker
         if theta2_rad is not None:
-             # Clamp for plotting
-            plot_force = min(force_current, ax_force.get_ylim()[1])
+            # Clamp the marker so it doesn't fly off the chart
+            plot_force = min(force_current, visual_cap)
             ax_force.plot(theta1_deg, plot_force, 'ro', markersize=8)
 
     st.pyplot(fig_force)
 
     # --- Transmission Angle Plot ---
     st.subheader("Transmission Angle")
-    fig_trans, ax_trans = plt.subplots(figsize=(6, 3))
+    
+    # FIX 3: Apply the same fixed layout to the second graph
+    fig_trans = plt.figure(figsize=(6, 3))
+    fig_trans.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.2)
+    ax_trans = fig_trans.add_subplot(111)
     
     if len(transmission_angles) > 0:
         ax_trans.plot(reachable_angles_deg, transmission_angles, color='purple')
         ax_trans.axhline(90, color='green', linestyle='--', alpha=0.5)
         ax_trans.set_xlabel("Input Angle θ₁ (°)")
         ax_trans.set_ylabel("Angle μ (°)")
-        ax_trans.set_ylim(0, 185)
+        
+        # Fixed limits prevent vertical jumping
+        ax_trans.set_ylim(0, 185) 
         ax_trans.grid(True, linestyle='--', alpha=0.6)
 
         # Current Position Marker
