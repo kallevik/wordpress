@@ -99,7 +99,7 @@ with col1:
 
     # --- FIXED AXIS LIMITS ---
     # This prevents the "breathing" effect and represents your fixed workspace.
-    ax_linkage.set_xlim(-80, 80)
+    ax_linkage.set_xlim(-80, 100)
     ax_linkage.set_ylim(-75, 125)
     
     ax_linkage.set_title(title_text)
