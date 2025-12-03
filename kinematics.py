@@ -68,7 +68,9 @@ col1, col2 = st.columns([1.5, 1])
 with col1:
     st.subheader("Mechanism Visualizer")
     
-    fig_linkage, ax_linkage = plt.subplots(figsize=(8, 6))
+    # Create the plot with a fixed size
+    fig_linkage = plt.figure(figsize=(8, 6))
+    ax_linkage = fig_linkage.add_subplot(111)
     ax_linkage.set_aspect('equal', adjustable='box')
     ax_linkage.grid(True, linestyle='--', alpha=0.6)
 
@@ -78,7 +80,7 @@ with col1:
         # Calculate joint positions
         A, B, C, D = get_joint_positions_trig(theta1_rad, theta3_rad, L0, L1, L3)
         
-        # Plot links
+        # Plot links with distinct colors/styles
         ax_linkage.plot([D[0], A[0]], [D[1], A[1]], 's-', label=r'$L_0$ (Ground)', lw=4, color='black')
         ax_linkage.plot([A[0], B[0]], [A[1], B[1]], 'o-', label=r'$L_1$ (Crank)', lw=5, color='darkorange')
         ax_linkage.plot([B[0], C[0]], [B[1], C[1]], 'o-', label=r'$L_2$ (Coupler)', lw=5, color='steelblue')
@@ -91,14 +93,15 @@ with col1:
 
         title_text = f"Output Force: {force_current:.2f} N | Trans. Angle: {trans_current:.1f}°"
         
-        # Visual Wedges (Optional, simplified for Streamlit speed)
+        # Visual Wedges (Optional - adds nice polish)
         wedge_radius = min(L1, L2, L3) * 0.4
         ax_linkage.add_patch(Wedge(A, wedge_radius, 0, theta1_deg, color='darkorange', alpha=0.3))
 
-    # Set dynamic limits based on link lengths
-    max_range = L0 + L1 + L2 + L3
-    ax_linkage.set_xlim(-L1 * 1.5, L0 + L3 * 1.5)
-    ax_linkage.set_ylim(-max_range * 0.5, max_range * 0.8)
+    # --- FIXED AXIS LIMITS ---
+    # This prevents the "breathing" effect and represents your fixed workspace.
+    ax_linkage.set_xlim(-80, 80)
+    ax_linkage.set_ylim(-75, 125)
+    
     ax_linkage.set_title(title_text)
     ax_linkage.legend(loc='upper right')
     
